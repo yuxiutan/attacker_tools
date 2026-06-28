@@ -63,6 +63,7 @@ SQL injection
 
 2. XSS -> 使用 BurpSuite 攔截封包
 
+
 (1) 直接插入 <script> 標籤（最直接，但也最容易被防火牆擋下）
 - <script>alert(1)</script>
 - <script>alert(document.cookie)</script>
