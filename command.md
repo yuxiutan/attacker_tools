@@ -54,9 +54,9 @@ amass enum -d target.com
 ```
 amass enum -passive -d target.com -o target_subdomains.txt 
 ```
-子網域清單（Subdomain List）您會抓到 target.com 底下所有活著（或曾經存在）的子網域，例如：vpn.target.com、stage.target.com、api-dev.target.com 等。
-情報來源標籤（Sources）因為加上了 -src，每一個找到的子網域前面都會標註它是怎麼被發現的。例如：[Brute Force] mfa.target.com（代表是靠暴力破解字典猜到的）、[Crtsh] mail.target.com（代表是從憑證日誌中撈到的）。這對評估資產的「隱蔽性」非常有幫助。
-網路拓撲架構（Network Topology）Amass 會自動解析這些子網域的 IP 位址、ASN（自治系統號）、以及所屬的網段（CIDR Block）。這能幫您理清目標企業是把服務託管在 AWS、GCP 還是自家機房。
+-> 子網域清單（Subdomain List）您會抓到 target.com 底下所有活著（或曾經存在）的子網域，例如：vpn.target.com、stage.target.com、api-dev.target.com 等。
+-> 情報來源標籤（Sources）因為加上了 -src，每一個找到的子網域前面都會標註它是怎麼被發現的。例如：[Brute Force] mfa.target.com（代表是靠暴力破解字典猜到的）、[Crtsh] mail.target.com（代表是從憑證日誌中撈到的）。這對評估資產的「隱蔽性」非常有幫助。
+-> 網路拓撲架構（Network Topology）Amass 會自動解析這些子網域的 IP 位址、ASN（自治系統號）、以及所屬的網段（CIDR Block）。這能幫您理清目標企業是把服務託管在 AWS、GCP 還是自家機房。
 
 SQL injection
 1. 身份驗證繞過型 -> 利用布林（Boolean）邏輯，讓 WHERE 條件的判斷結果永遠為 TRUE。原本後端寫：SELECT * FROM users WHERE user = '$input' AND pass = '$pass'；注入後變成：SELECT * FROM users WHERE user = '' OR 1=1 -- ' AND pass = '$pass'(解析：資料庫讀到 --  後，後面的密碼檢查直接被廢棄，且 1=1 永遠成立，直接登入第一筆資料，通常是 Admin)
