@@ -66,9 +66,9 @@ SQL injection
 - <script>alert(1)</script>
 - <script>alert(document.cookie)</script>
 (2) 利用 HTML 事件屬性（Event Handlers）（常搭配正常的標籤來隱蔽）
-- 當圖片載入失敗時觸發："""<img src="x" onerror="alert(1)">"""
-- 當滑鼠移過去時觸發："""<a href="#" onmouseover="alert(1)">"""
-- 當網頁載入時觸發："""<body onload="alert(1)">"""
+- 當圖片載入失敗時觸發：<img src="x" onerror="alert(1)">
+- 當滑鼠移過去時觸發：<a href="#" onmouseover="alert(1)">
+- 當網頁載入時觸發：<body onload="alert(1)">
 (3) 利用偽協議（Pseudo-protocols）（將 JS 偽裝成網址）
 - 放在超連結中：<a href="javascript:alert(1)">點擊這裡領取獎品</a>
 ### 實戰中常見的注入語法與目的
