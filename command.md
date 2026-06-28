@@ -71,7 +71,7 @@ SQL injection
 - 當網頁載入時觸發：<body onload="alert(1)">
 (3) 利用偽協議（Pseudo-protocols）（將 JS 偽裝成網址）
 - 放在超連結中：<a href="javascript:alert(1)">點擊這裡領取獎品</a>
-## 實戰中常見的注入語法與目的
+### 實戰中常見的注入語法與目的
 (1) 探測漏洞（Proof of Concept）-> 目的是證明「這段程式碼確實被瀏覽器執行了」，通常會使用彈出視窗
 - "><script>alert(document.cookie)</script> -> （前面的 "> 用用來閉合原有的 HTML 標籤）
 - <svg/onload=alert(1)> -> （利用 SVG 標籤與 onload 事件，語法極短，常用於繞過長度限制）
