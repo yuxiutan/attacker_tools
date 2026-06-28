@@ -1,11 +1,17 @@
 ## 收集情報
 被動情報收集
 - 查詢網域註冊擁有者、DNS 伺服器與註冊商資訊
-```whois target.com```
+```
+whois target.com
+```
 - 查詢目標網域的 IP 位址
-```nslookup target.com```
+```
+nslookup target.com
+```
 - 查詢該網域的所有 DNS 紀錄（A, AAAA, MX, TXT 等）
-```dig target.com ANY```
+```
+dig target.com ANY
+```
 
 主動情報收集
 連接埠掃描與服務識別
