@@ -211,6 +211,7 @@ https://ithelp.ithome.com.tw/m/articles/10321942
 4. Linux 提權
 - https://swisskyrepo.github.io/InternalAllTheThings/redteam/escalation/linux-privilege-escalation/#nopasswd
 - LinPEAS -> https://github.com/carlospolop/PEASS-ng
+
 (1)
 ```
 wget https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh -o linpeas.sh
