@@ -15,10 +15,18 @@ dig target.com ANY
 
 主動情報收集
 連接埠掃描與服務識別
-- nmap -sV -sC -O -p- -T4 --min-rate 5000 [目標IP] -oN scan_result.txt
-- nmap -sS -A -p- [目標IP]
-- arp-scan -l -> 掃描區域網路內所有設備的 MAC 與 IP 位址。
-- nikto -host http://target.com/ -> 自動找常見 Web 漏洞
+```
+nmap -sV -sC -O -p- -T4 --min-rate 5000 [目標IP] -oN scan_result.txt
+```
+```
+nmap -sS -A -p- [目標IP]
+```
+```
+arp-scan -l -> 掃描區域網路內所有設備的 MAC 與 IP 位址。
+```
+```
+nikto -host http://target.com/ -> 自動找常見 Web 漏洞
+```
 
 Web 資訊與路徑目錄強制爆破 -> 針對 Web 伺服器，收集網站架構、隱藏目錄、備份檔案及後台路徑。
 - whatweb http://target.com：辨識網站使用的 CMS（如 WordPress）、網頁伺服器（Nginx/Apache）及 JavaScript 框架。
