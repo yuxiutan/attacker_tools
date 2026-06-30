@@ -1,4 +1,4 @@
-Permission 相關（非 root 帳號下的工具安裝/執行）
+### Permission 相關（非 root 帳號下的工具安裝/執行）
 大部分問題其實是「目錄寫入權限」問題，不是工具本身需要 root。常見解法：
 ```
 # Go 工具（subfinder, httpx, katana, dalfox, gospider 等）
@@ -31,4 +31,12 @@ git clone https://github.com/s0md3v/XSStrike.git
 sudo apt install seclists gobuster nikto
 ```
 
-唯一例外是如果你的 wordlist 或工具目錄被裝到 /usr/share 之類受保護的路徑、且你帳號沒有讀取權限——那就用 cp 複製一份到家目錄。
+### 唯一例外是如果你的 wordlist 或工具目錄被裝到 /usr/share 之類受保護的路徑、且你帳號沒有讀取權限——那就用 cp 複製一份到家目錄。
+
+### DVWA/WebGoat 裡驗證能不能讀到資料庫內容
+這個我可以給你方法論層面的指引：在 SQLi 找到注入點之後，要驗證「影響範圍」（也就是滲透測試報告裡會寫的「可讀取的機敏資料範圍」），標準流程是：
+
+sqlmap -u "..." --dbs 列出資料庫，先確認你能列舉到什麼，而不是直接 dump
+--current-db / --current-user 確認目前連線權限等級
+-D dbname --tables 找出像 users、accounts 這類表名
+只 dump 結構先看欄位（--columns），再決定要不要實際 dump 資料——這一步在正式測試報告裡通常只需要證明「可以讀到」，不需要把整張表撈出來
